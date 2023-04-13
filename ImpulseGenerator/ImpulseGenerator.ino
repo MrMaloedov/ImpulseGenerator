@@ -1,8 +1,12 @@
-int pulsePin = 2; // номер пина, к которому подключен осциллограф
-int delayTime = 1000; // задержка между пачками импульсов (в микросекундах)
+int pulsePin = 8; // номер пина, к которому подключен осциллограф
+int delayTime = 210000; // задержка между пачками импульсов (в микросекундах)
 int burstWidth = 4; // длительность импульсов в пачке (в микросекундах)
-int pulseDuration = 2000; // длительность отдельного импульса (в микросекундах)
-int interPulsePeriod = 50; // задержка между отдельными импульсами в пачке (в микросекундах)
+int pulseDuration = 60; // длительность отдельного импульса (в микросекундах)
+int interPulsePeriod = 200; // задержка между отдельными импульсами в пачке (в микросекундах)
+int numberOfBrusts = 4;// Количество отправляемых пачек
+int pulseCount = 11;//Количество импульсов в пачке
+bool run = false; // переменная для хранения состояния основного цикла
+bool buttonState = false; // переменная для хранения состояния кнопки
 
 void generateBrust(int pulseCount, int brustWidth, int interPulsePeriod, int pulseDuration) {
   for (int i = 0; i < pulseCount; i++) { // генерируем pulseCount пачек импульсов
@@ -16,16 +20,21 @@ void generateBrust(int pulseCount, int brustWidth, int interPulsePeriod, int pul
 
 void setup() {
   pinMode(pulsePin, OUTPUT); // устанавливаем пин на вывод
-  pinMode(A0, INPUT);
-  pinMode(A1, INPUT); 
-  pinMode(A2, INPUT); 
-  pinMode(A3, INPUT); 
+  pinMode(3, INPUT_PULLUP); // устанавливаем пин 4 на вход с подтяжкой к +5В
 }
 
 void loop() {
-  burstWidth = map(analogRead(A0), 0, 1023, 1, 500); // изменяем burstWidth соответственно значению на потенциометре 1
-  interPulsePeriod = map(analogRead(A1), 0, 1023, 0, 10000); // изменяем interPulsePeriod соответственно значению на потенциометре 2
-  pulseDuration = map(analogRead(A2), 0, 1023, 0, 10000); // изменяем pulseDuration соответственно значению на потенциометре 3
-  delayTime = map(analogRead(A3), 0, 1023, 1, 10000);
-  generateBrust(1, burstWidth, interPulsePeriod, pulseDuration); // вызываем функцию с новыми параметрами
+  if(digitalRead(3) == LOW && !buttonState) { // проверяем состояние кнопки
+    buttonState = true; // сохраняем состояние кнопки
+  }
+  if(digitalRead(3) == HIGH && buttonState) { // проверяем, была ли кнопка отпущена
+    run = true; // запускаем основной цикл
+    buttonState = false; // сбрасываем состояние кнопки
+  }
+  if(run) { // если запущен
+	for (int i = 0; i < numberOfBrusts; i++){
+		generateBrust(pulseCount, burstWidth, interPulsePeriod, pulseDuration);
+	}
+    run = false; // сбрасываем флаг запуска
+  }
 }
